@@ -1,0 +1,50 @@
+server<-shinyServer(function(input,output,session){
+  a_simplex<-reactive({as.vector(as.numeric(unlist(strsplit(input$objective_simplex,","))))})
+  A1_full_simplex<-reactive({
+    req(small_c_simplex)
+    if (req(input$small_simplex)<=0){
+      A1_full_simplex<-NULL
+    }else {
+      A1_full_simplex<-matrix(as.numeric(unlist(strsplit(input$small_c_simplex,","))),nrow=input$small_simplex,byrow=TRUE)
+      #A1_simplex<-A1_full_simplex[,1:(ncol(A1_full_simplex)-1)]
+      #b1_simplex<-A1_full_simplex[,ncol(A1_full_simplex)]
+    }
+  })
+  A3_full_simplex<-reactive({
+    req(equal_c_simplex)
+    if (req(input$equal_simplex)<=0){
+      A3_full_simplex<- NULL
+    }else {
+      A3_full_simplex<-matrix(as.numeric(unlist(strsplit(input$equal_c_simplex,","))),nrow=input$equal_simplex,byrow=TRUE)
+    }
+  })
+  A2_full_simplex<-reactive({
+    req(big_c_simplex)
+    if (req(input$big_simplex)<=0){
+      A2_full_simplex<-NULL
+    }else {
+      A2_full_simplex<-matrix(as.numeric(unlist(strsplit(input$big_c_simplex,","))),nrow=input$big_simplex,byrow=TRUE)
+    }
+  })
+  
+  lp_simplex<-reactive({
+    if (req(input$maxmin_siplex)=="max"){
+      lp_simplex<-simplex(a_simplex(),
+                          A1=A1_full_simplex()[,1:(ncol(A1_full_simplex)-1)],b1=A1_full_simplex()[,ncol(A1_full_simplex)],
+                          A2=A2_full_simplex()[,1:(ncol(A2_full_simplex)-1)],b2=A2_full_simplex()[,ncol(A2_full_simplex)],
+                          A3=A3_full_simplex()[,1:(ncol(A3_full_simplex)-1)],b3=A3_full_simplex()[,ncol(A3_full_simplex)],
+                          maxi=TRUE)
+    }else {
+      lp_simplex<-simplex(a_simplex(),
+                          A1=A1_full_simplex()[,1:(ncol(A1_full_simplex)-1)],b1=A1_full_simplex()[,ncol(A1_full_simplex)],
+                          A2=A2_full_simplex()[,1:(ncol(A2_full_simplex)-1)],b2=A2_full_simplex()[,ncol(A2_full_simplex)],
+                          A3=A3_full_simplex()[,1:(ncol(A3_full_simplex)-1)],b3=A3_full_simplex()[,ncol(A3_full_simplex)],
+                          maxi=FALSE)
+    }
+  })
+  output$result2_simplex<-renderText({
+    lp_simplex()
+  })
+
+})
+shinyApp(ui,server)
